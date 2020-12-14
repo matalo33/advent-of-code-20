@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 )
 
 func main() {
@@ -16,18 +17,46 @@ func main() {
 		input = append(input, scanner.Text())
 	}
 
-	fmt.Printf("Highest seat ID found: %v\n", findHighSeatID(input))
+	p1, p2 := findSeatIDs(input)
+
+	fmt.Printf("Highest seat ID found: %v\n", p1)
+	fmt.Printf("My seat ID: %v\n", p2)
 }
 
-func findHighSeatID(passes []string) int {
+func findSeatIDs(passes []string) (int, int) {
 	highSeatID := 0
+	seatList := make([]int, (128*8 + 8))
 	for _, s := range passes {
 		id := codeToID(s)
+		seatList[id] = id
 		if id > highSeatID {
 			highSeatID = id
 		}
 	}
-	return highSeatID
+
+	// This feels wrong, but 🤷‍♂️
+	// Sort the slice containing all seen seat IDs
+	sort.Ints(seatList)
+
+	// Find where the seats begin
+	i := 0
+	for s := range seatList {
+		if seatList[s] != 0 {
+			i = s
+			break
+		}
+	}
+
+	// Then iterate to find the missing seat
+	lastSeenSeat := seatList[i]
+	for _, s := range seatList[i:] {
+		if s-lastSeenSeat > 1 {
+			break
+		}
+		lastSeenSeat = s
+	}
+
+	return highSeatID, lastSeenSeat + 1
 }
 
 func codeToID(s string) int {
@@ -43,15 +72,13 @@ func reduce(s []rune, min, max int) int {
 	if reduceBy == 1 {
 		if c == "F" || c == "L" {
 			return min
-		} else {
-			return max
 		}
+		return max
 	}
 
 	// To ♾ and beyond
 	if c == "F" || c == "L" {
 		return reduce(s[1:], min, max-reduceBy)
-	} else {
-		return reduce(s[1:], min+reduceBy, max)
 	}
+	return reduce(s[1:], min+reduceBy, max)
 }
