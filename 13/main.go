@@ -23,7 +23,7 @@ func main() {
 	line, _ = reader.ReadString('\n')
 	timetable := parseTimetable(line)
 
-	fmt.Printf("Earliest bus ID: %v", findEarliestBusId(timetable, earliestTime))
+	fmt.Printf("Earliest bus ID: %v", part1(findEarliestBusId(timetable, earliestTime), earliestTime))
 }
 
 func parseTimetable(line string) (busses []int) {
@@ -36,18 +36,23 @@ func parseTimetable(line string) (busses []int) {
 	return
 }
 
-func findEarliestBus(busses []int, earliestTime int) (id int) {
-	earliestBus := math.MaxInt32
+func part1(bus, earliestTime int) int {
+	nextDep := earliestTime + bus - 1
+	nextDep -= nextDep % bus
+	return (nextDep - earliestTime) * bus
+}
+
+func findEarliestBusId(busses []int, earliestTime int) (id int) {
+	earliestBus, earliestDep := math.MaxInt32, math.MaxInt32
 
 	for _, bus := range busses {
-		if earliestTime%bus == 0 {
-			id = (earliestTime / bus)
-		} else {
-			id = (earliestTime / bus) + 1
-		}
-
-		if id < earliestBus {
-			earliestBus = id
+		nextDep := earliestTime + bus - 1
+		nextDep -= nextDep % bus
+		if nextDep < earliestDep {
+			earliestDep = nextDep
+			earliestBus = bus
 		}
 	}
+
+	return earliestBus
 }
